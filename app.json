@@ -4,7 +4,7 @@
   "env": {
     "DS_API_ID": {"value": "21134445"},
     "DS_API_HASH": {"value": "231c18ea7273824491d6bf05425ab74e"},
-    "DS_BOT_TOKEN": {"required": true},
+    "DS_BOT_TOKEN": {"value": ""},
     "DS_BOT_USERNAME": {"value": "SicknessRoBot"},
     "DS_LOG_CHANNEL": {"value": "-1003373253670"},
     "DS_STICKER": {"value": ""},
@@ -22,11 +22,5 @@
   },
   "buildpacks": [
     {"url": "heroku/python"}
-  ],
-  "formation": {
-    "worker": {
-      "quantity": 1,
-      "size": "basic"
-    }
-  }
+  ]
 }
