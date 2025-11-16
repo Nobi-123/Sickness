@@ -2,17 +2,14 @@
   "name": "SicknessRoBot",
   "description": "Telegram bot hosted on Heroku",
   "keywords": ["telegram", "pyrogram", "bot"],
-
   "env": {
     "DS_API_ID": {
       "description": "Telegram API ID",
       "value": "21134445"
-      "required": true
     },
     "DS_API_HASH": {
       "description": "Telegram API Hash",
       "value": "231c18ea7273824491d6bf05425ab74e"
-      "required": true
     },
     "DS_BOT_TOKEN": {
       "description": "Bot token from BotFather",
@@ -25,7 +22,6 @@
     "DS_LOG_CHANNEL": {
       "description": "Log channel ID",
       "value": "-1003373253670"
-      "required": true
     },
     "DS_STICKER": {
       "description": "Optional sticker pack link",
@@ -35,40 +31,30 @@
       "description": "Bot default picture",
       "value": "https://files.catbox.moe/6oh471.jpg"
     },
-
     "DS_DESI_FILE_CHANNEL": {
       "description": "DESI file database channel ID",
       "value": "-1002812150081"
-      "required": true
     },
     "DS_VIDESI_FILE_CHANNEL": {
       "description": "VIDESI file database channel ID",
       "value": "-1002855994773"
-      "required": true
     },
-
     "DS_ADMINS": {
       "description": "Admin user IDs (space-separated)",
       "value": "8315954262"
-      "required": true
     },
-
     "DS_DB_URI": {
       "description": "MongoDB connection URI",
       "value": "mongodb+srv://SickNessRoBot:Sickness@sickness.qxwkdjl.mongodb.net/?appName=Sickness"
-      "required": true
     },
     "DS_DB_NAME": {
       "description": "MongoDB database name",
       "value": "SickNess"
     },
-
     "DS_AUTH_CHANNEL": {
       "description": "Force-subscribe channel ID",
       "value": "-1002890076223"
-      "required": true
     },
-
     "DS_API": {
       "description": "Shortlink API key",
       "value": "f454aa0a0473907a126cdc6763f5dc53361c1c7a"
@@ -86,13 +72,11 @@
       "value": "False"
     }
   },
-
   "buildpacks": [
     {
       "url": "heroku/python"
     }
   ],
-
   "formation": {
     "worker": {
       "quantity": 1,
