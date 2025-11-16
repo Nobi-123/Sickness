@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Start Flask server in the background
+python3 app.py &
+
+# Run the bot in the foreground
+python3 bot.py
