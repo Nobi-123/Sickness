@@ -45,7 +45,7 @@ Aᴍᴏᴜɴᴛ:</b> {num_codes}
         keyboard = InlineKeyboardMarkup(
             [
                 [InlineKeyboardButton("Rᴇᴅᴇᴇᴍ Hᴇʀᴇ ✅️", url=f"http://t.me/{DS_BOT_USERNAME}")],
-                [InlineKeyboardButton("Aɴʏ Qᴜᴇʀʏ ❔", url="https://t.me/xAkairo")]
+                [InlineKeyboardButton("Aɴʏ Qᴜᴇʀʏ ❔", url="https://t.me/Falcoxr")]
             ]
         )
 
