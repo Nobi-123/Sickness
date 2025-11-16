@@ -25,9 +25,6 @@ keyboard = ReplyKeyboardMarkup(
             KeyboardButton("My Plan"),
             KeyboardButton("Get Premium")
         ],
-        [
-            KeyboardButton("Bot & Repo Details")
-        ]
     ],
     resize_keyboard=True,
     one_time_keyboard=False  # Set to True if you want the keyboard to disappear after a button press
@@ -122,7 +119,7 @@ async def handle_request(bot, message):
                         protect_content=True,
                         reply_markup=InlineKeyboardMarkup(btn)
                     )
-                await asyncio.sleep(300)
+                await asyncio.sleep(120)
                 await k.delete()
                 return
         tag, channel = "videsi", DS_VIDESI_FILE_CHANNEL
@@ -139,9 +136,9 @@ async def handle_request(bot, message):
                     chat_id=message.chat.id,
                     from_chat_id=channel,
                     message_id=file['msg_id'],
-                    caption=f"""<b>Powered By <a href='https://t.me/AdultxPornBot'>𝘈𝘥𝘶𝘭𝘵 𝘡𝘰𝘯𝘦 💦</a></b>\n\n<blockquote>This Message Will Be Deleted In 10 Minutes Due To Copyright Issue So Save It Somewhere.</blockquote>"""
+                    caption=f"""<b>Powered By <a href='https://t.me/TncNetwork'>Tɴᴄ || Nᴇᴛᴡᴏʀᴋ</a></b>\n\n<blockquote>This Message Will Be Deleted In 1 Minutes Due To Copyright Issue So Save It Somewhere.</blockquote>"""
                 )
-            await asyncio.sleep(600)
+            await asyncio.sleep(60)
             await qw.delete()
         except Exception as e:
             print(f"❌ Error sending file: {e}")
@@ -181,9 +178,9 @@ async def handle_request(bot, message):
                     chat_id=message.chat.id,
                     from_chat_id=channel,
                     message_id=file['msg_id'],
-                    caption=f"""<b>Powered By <a href='https://t.me/AdultxPornBot'>𝘈𝘥𝘶𝘭𝘵 𝘡𝘰𝘯𝘦 💦</a></b>\n\n<blockquote>This Message Will Be Deleted In 10 Minutes Due To Copyright Issue So Save It Somewhere.</blockquote>"""
+                    caption=f"""<b>Powered By <a href='https://t.me/TncNetwork'>Tɴᴄ || Nᴇᴛᴡᴏʀᴋ </a></b>\n\n<blockquote>This Message Will Be Deleted In 1 Minutes Due To Copyright Issue So Save It Somewhere.</blockquote>"""
             )
-            await asyncio.sleep(600)
+            await asyncio.sleep(60)
             await la.delete()
         except Exception as e:
             print(f"❌ Error sending file: {e}")
@@ -223,7 +220,7 @@ async def handle_request(bot, message):
     
     elif "get premium" in text: 
         buttons = [[
-            InlineKeyboardButton('Buy ✓', url='https://t.me/NoOneIsMinee')
+            InlineKeyboardButton('Buy ', url='https://t.me/Falcoxr')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_text(text=SUBS_TXT,
@@ -232,7 +229,7 @@ async def handle_request(bot, message):
 
     elif "bot & repo details" in text:
         buttons = [[
-            InlineKeyboardButton('Buy Repo ✓', url='http://t.me/NoOneIsMinee')
+            InlineKeyboardButton('Buy Repo ', url='http://t.me/Falcoxr')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         c = await message.reply_text(text=ABOUT_TXT,
