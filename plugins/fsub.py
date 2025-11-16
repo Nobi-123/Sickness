@@ -15,7 +15,7 @@ async def checkSub(bot, message):
     try:
         user =await bot.get_chat_member(DS_AUTH_CHANNEL, userid)
         if user.status == enums.ChatMemberStatus.BANNED:
-            await message.reply_text("**<i>Sorry, You're Banned. Contact my [Developer](https://t.me/NoOneIsMinee') to get unbanned.**</i>", disable_web_page_preview=True)
+            await message.reply_text("**<i>Sorry, You're Banned. Contact my [Developer](https://t.me/Falcoxr') to get unbanned.**</i>", disable_web_page_preview=True)
             return False
         return True
     except UserNotParticipant:
@@ -31,7 +31,7 @@ async def checkSub(bot, message):
         return False
     except Exception as e:
         print(e)
-        await message.reply_text("Something went wrong. Contact my [Developer](https://t.me/NoOneIsMinee').")
+        await message.reply_text("Something went wrong. Contact my [Developer](https://t.me/Falcoxr').")
         return False
     
 
