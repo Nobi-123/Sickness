@@ -1,4 +1,4 @@
-# (C) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
+# Nexa # Dont Remove Credit
 
 LOG_TEXT = """<b>#NewUser\n\nID - <code>{}</code>\n\nNᴀᴍᴇ - {}</b>"""
 
@@ -58,4 +58,4 @@ DST_TEXT = """<b>𝖳𝖤𝖱𝖬𝖲 𝖠𝖭𝖣 𝖢𝖮𝖭𝖣𝖨𝖳𝖨�
 𝖡𝗒 𝖴𝗌𝗂𝗇𝗀 𝖮𝗎𝗋 𝖲𝖾𝗋𝗏𝗂𝖼𝖾 𝖸𝗈𝗎 𝖢𝗈𝗇𝖿𝗂𝗋𝗆 𝖳𝗁𝖺𝗍 𝖸𝗈𝗎 𝖧𝖺𝗏𝖾 𝖱𝖾𝖺𝖽 𝖴𝗇𝖽𝖾𝗋𝗌𝗍𝗈𝗈𝖽 𝖠𝗇𝖽 𝖠𝗀𝗋𝖾𝖾𝖽 𝖳𝗈 𝖳𝗁𝖾𝗌𝖾 𝖳𝖾𝗋𝗆𝗌.</b>
 """
 
-# (C) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
+# Nexa # Dont Remove Credit
