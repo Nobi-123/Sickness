@@ -1,4 +1,4 @@
-# (C) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️  — Do Not Remove Credit
+# Nexa  — Do Not Remove Credit
 
 import asyncio
 import datetime
