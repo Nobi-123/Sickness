@@ -12,7 +12,7 @@ from pyrogram.types import (
 from config import *
 from plugins.database import db          # Updated import
 from plugins.fsub import checkSub                # fsub.py is in root, so import directly
-from script import LOG_TEXT, ABOUT_TXT, DS_TEXT, DST_TEXT
+from plugins.script import LOG_TEXT, ABOUT_TXT, DS_TEXT, DST_TEXT
 from utils import check_and_increment
 
 
