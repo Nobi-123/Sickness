@@ -4,7 +4,6 @@ import datetime
 import pytz, random, string  
 from pytz import timezone
 from datetime import date 
-from config import DS_API, DS_URL, FREE_LIMIT_DESI, FREE_LIMIT_VIDESI, PREMIUM_LIMIT_DESI, PREMIUM_LIMIT_VIDESI
 from shortzy import Shortzy
 from plugins.database import db
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
