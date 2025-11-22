@@ -130,7 +130,7 @@ async def handle_request(bot, message):
                 from_chat_id=channel,
                 message_id=file["msg_id"],
                 caption=(
-                    "<b>Powered by <a href='https://t.me/TncNetwork'>TNC Network</a></b>"
+                    "<b>Powered by <a href='https://t.me/NexaCoders'>Nexa Coders</a></b>"
                     "\n\n<blockquote>This file auto-deletes in 1 minute.</blockquote>"
                 )
             )
