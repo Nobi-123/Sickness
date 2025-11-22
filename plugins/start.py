@@ -11,6 +11,7 @@ from pyrogram.types import (
 
 from config import *
 from database import db
+from plugins.fsub import checkSub
 from plugins.script import LOG_TEXT, ABOUT_TXT, DS_TEXT, DST_TEXT
 from utils import check_and_increment
 
