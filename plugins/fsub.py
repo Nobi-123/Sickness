@@ -1,38 +1,63 @@
-# (c) @Sanchit0102 & ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
+# Nexa — Do Not Remove Credit
 
-# ===================== [ importing Requirements ] ===================== #
-
-from pyrogram import enums 
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import UserNotParticipant
-from config import DS_AUTH_CHANNEL, DS_BOT_USERNAME
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import DS_FSUB_CHANNELS, DS_BOT_USERNAME
 
-# ===================== [ Force Sub Def ] ===================== #
 
+async def checkSub(client, message):
+    user_id = message.from_user.id
+    not_joined = []
 
-async def checkSub(bot, message):
-    userid = message.from_user.id
-    try:
-        user =await bot.get_chat_member(DS_AUTH_CHANNEL, userid)
-        if user.status == enums.ChatMemberStatus.BANNED:
-            await message.reply_text("**<i>Sorry, You're Banned. Contact my [Developer](https://t.me/Falcoxr') to get unbanned.**</i>", disable_web_page_preview=True)
-            return False
-        return True
-    except UserNotParticipant:
-        invite_link = await bot.export_chat_invite_link(DS_AUTH_CHANNEL)
-        join_button = InlineKeyboardMarkup([
-            [
-            InlineKeyboardButton('⛔️ Jᴏɪɴ Cʜᴀɴɴᴇʟ ⛔️', url=invite_link)
-            ],[
-            InlineKeyboardButton('♻️ Rᴇғʀᴇsʜ ♻️', url=f'https://t.me/{DS_BOT_USERNAME}?start=True')
-            ]
+    # Check membership for ALL required channels
+    for channel in DS_FSUB_CHANNELS:
+        try:
+            member = await client.get_chat_member(channel, user_id)
+
+            # If not proper member
+            if member.status not in ["member", "administrator", "creator"]:
+                not_joined.append(channel)
+
+        except UserNotParticipant:
+            not_joined.append(channel)
+
+        except Exception:
+            # If channel lookup fails → skip but don't break bot
+            continue
+
+    # If user is missing channels
+    if not_joined:
+        buttons = []
+
+        # Create one button per channel
+        for ch in not_joined:
+            try:
+                chat = await client.get_chat(ch)
+                if chat.username:
+                    buttons.append(
+                        [InlineKeyboardButton(f"Join {chat.title}", url=f"https://t.me/{chat.username}")]
+                    )
+                else:
+                    # private channels without username
+                    buttons.append(
+                        [InlineKeyboardButton(f"Join {chat.title}", url=chat.invite_link)]
+                    )
+            except:
+                continue
+
+        # Retry button
+        buttons.append([
+            InlineKeyboardButton(
+                "♻️ Try Again",
+                url=f"https://t.me/{DS_BOT_USERNAME}?start=start"
+            )
         ])
-        await message.reply_text("**<i>Please Join My Updates Channel to use this Bot!**\n**Due to Overload, Only Channel Subscribers can use this Bot!</i>**", reply_markup=join_button)
-        return False
-    except Exception as e:
-        print(e)
-        await message.reply_text("Something went wrong. Contact my [Developer](https://t.me/Falcoxr').")
-        return False
-    
 
-# ===================== [🔺 End Of Force Sub 🔺] ===================== #
+        await message.reply_text(
+            "<b>You must join all channels below to continue:</b>",
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode="html"
+        )
+        return False
+
+    return True
