@@ -16,10 +16,7 @@ DS_PIC = environ.get('DS_PIC', 'https://files.catbox.moe/6oh471.jpg')
 # Database Channel For Text Or Caption Store 
 DS_DESI_FILE_CHANNEL = int(environ.get("DS_DESI_FILE_CHANNEL", ""))
 DS_VIDESI_FILE_CHANNEL = int(environ.get("DS_VIDESI_FILE_CHANNEL", ""))
-FREE_LIMIT_DESI = 5
-FREE_LIMIT_VIDESI = 3
-PREMIUM_LIMIT_DESI = 40
-PREMIUM_LIMIT_VIDESI = 15
+
 
 # Bot Admins
 try:
