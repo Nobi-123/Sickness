@@ -5,15 +5,17 @@ import pytz, random, string
 from pytz import timezone
 from datetime import date 
 from shortzy import Shortzy
-from plugins.database import db
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from plugins.database import db   # Still used only for storing users if needed
 
 # ======================================================================= #
 
 TOKENS = {}
 VERIFIED = {}
 
-# Convert time string into seconds
+# ======================================================================= #
+# TIME STRING → SECONDS
+# ======================================================================= #
+
 async def get_seconds(time_string):
     def extract_value_and_unit(ts):
         value = ""
@@ -37,6 +39,7 @@ async def get_seconds(time_string):
 
 # ======================================================================= #
 # LINK SHORTENER
+# ======================================================================= #
 
 async def get_verify_shorted_link(link):
     shortzy = Shortzy(api_key=DS_API, base_site=DS_URL)
@@ -44,6 +47,7 @@ async def get_verify_shorted_link(link):
 
 # ======================================================================= #
 # TOKEN HANDLER
+# ======================================================================= #
 
 async def check_token(bot, userid, token):
     user = await bot.get_users(userid)
@@ -52,21 +56,23 @@ async def check_token(bot, userid, token):
 
 async def get_token(bot, userid, link):
     user = await bot.get_users(userid)
+    
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
+    
     TOKENS[user.id] = {token: False}
+
     verify_url = f"{link}verify-{user.id}-{token}"
     return await get_verify_shorted_link(verify_url)
 
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)
     TOKENS[user.id] = {token: True}
-    today = date.today()
-    VERIFIED[user.id] = str(today)
+    VERIFIED[user.id] = str(date.today())
 
 async def check_verification(bot, userid):
     user = await bot.get_users(userid)
     today = date.today()
-
+    
     if user.id not in VERIFIED:
         return False
 
@@ -77,62 +83,39 @@ async def check_verification(bot, userid):
     return old >= today
 
 # ======================================================================= #
-# ( PREMIUM REMOVED ) DAILY LIMIT HANDLER
+# LIMIT SYSTEM REMOVED
+# ======================================================================= #
+# No limit checking
+# No usage tracking
+# No reset job
 # ======================================================================= #
 
 async def check_and_increment(user_id, tag):
-    # Fetch user
+    """
+    LIMIT REMOVED:
+    Always return True → unlimited usage for all users
+    """
+    # Make sure the user exists in the DB (optional)
     user = await db.get_user(user_id)
     if not user:
         await db.add_user(user_id, f"User{user_id}")
-        user = await db.get_user(user_id)
 
-    # Reset per-day data if new day
-    today = str(datetime.datetime.now(pytz.timezone("Asia/Kolkata")).date())
-    last_used_date = user.get("date")
-
-    if last_used_date != today:
-        await db.set_date(user_id, today)
-        await db.set_free_used(user_id, {"desi": 0, "videsi": 0})
-
-    used = user.get("free_used", {"desi": 0, "videsi": 0})
-
-    # PREMIUM REMOVED → always use free limits
-    if tag == "desi":
-        limit = FREE_LIMIT_DESI
-    else:
-        limit = FREE_LIMIT_VIDESI
-
-    # Check limit
-    if used.get(tag, 0) >= limit:
-        return False
-
-    # Increment usage
-    used[tag] = used.get(tag, 0) + 1
-    await db.set_free_used(user_id, used)
     return True
 
 # ======================================================================= #
-# RESET LIMITS FOR ALL USERS DAILY
+# DAILY RESET REMOVED
 # ======================================================================= #
 
 async def reset_limits():
-    print("Resetting daily usage limits...")
-    async for user in db.get_all_users():
-        await db.set_free_used(user['id'], {"desi": 0, "videsi": 0})
-        ist = timezone("Asia/Kolkata")
-        today = str(datetime.datetime.now(ist).date())
-        await db.set_date(user['id'], today)
-    print("Limits reset.")
-
-# ======================================================================= #
-# SCHEDULER → RESET AT MIDNIGHT
-# ======================================================================= #
+    """
+    Function kept only for compatibility but does nothing now.
+    """
+    print("Daily limit reset skipped (limits removed).")
 
 async def start_scheduler():
-    scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
-    scheduler.add_job(reset_limits, "cron", hour=0, minute=0)
-    scheduler.start()
-    print("[Scheduler] Daily reset job scheduled at 00:00 IST.")
+    """
+    Scheduler removed. No daily reset needed.
+    """
+    print("[Scheduler] Disabled since limits are removed.")
 
 # Nexa # Dont Remove Credit
