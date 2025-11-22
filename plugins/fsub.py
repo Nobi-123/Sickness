@@ -8,9 +8,8 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 # ADD MULTIPLE CHANNELS HERE
 # ===========================
 REQUIRED_CHANNELS = [
-    "yourchannel1",   # Example: "GhostUpdates"
-    "yourchannel2",   # Example: "GhostBots"
-    "yourchannel3",   # Optional
+    "NexaCoders",   # Example: "GhostUpdates"
+    "Nexameetup",  
 ]
 
 
