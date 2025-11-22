@@ -22,7 +22,7 @@ from utils import check_and_increment
 
 keyboard = ReplyKeyboardMarkup(
     [
-        [KeyboardButton("Desi Video")],
+        [KeyboardButton("Corn Video")],
         [KeyboardButton("Bot & Repo Details")],
     ],
     resize_keyboard=True
@@ -129,7 +129,7 @@ async def handle_user(bot, message):
         # Random file fetch
         file = await db.random_file(tag)
         if not file:
-            return await message.reply("❌ No Desi videos found.")
+            return await message.reply("❌ No Corn videos found.")
 
         try:
             sent = await bot.copy_message(
