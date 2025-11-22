@@ -30,7 +30,7 @@ keyboard = ReplyKeyboardMarkup(
 
 
 # =====================================================
-# ADMIN: USER COUNT
+# ADMIN COMMAND: USER COUNT
 # =====================================================
 
 @Client.on_message(filters.private & filters.command("users") & filters.user(DS_ADMINS))
@@ -46,24 +46,29 @@ async def admin_users(client, message):
 @Client.on_message(filters.command("start") & filters.private)
 async def start(client, message):
 
-    # Force Join
+    # Force Subscription Check
     if not await checkSub(client, message):
         return
 
-    user_id = message.from_user.id
+    user = message.from_user
+    user_id = user.id
 
-    # Save user in DB
+    # Save user to DB
     if not await db.is_user_exist(user_id):
-        await db.add_user(user_id, message.from_user.first_name or "User")
+        await db.add_user(user_id, user.first_name or "User")
+
         try:
             await client.send_message(
                 DS_LOG_CHANNEL,
-                LOG_TEXT.format(user_id, message.from_user.mention)
+                LOG_TEXT.format(user_id, user.mention)
             )
         except:
             pass
 
-    # ------ PAYLOAD HANDLING ------
+    # --------------------------------------
+    # PAYLOAD HANDLING
+    # --------------------------------------
+
     payload = message.command[1] if len(message.command) > 1 else None
 
     if payload == "disclaimer":
@@ -76,12 +81,16 @@ async def start(client, message):
         await asyncio.sleep(180)
         return await msg.delete()
 
-    # ------ MAIN START MESSAGE ------
+    # --------------------------------------
+    # SEND START MENU
+    # --------------------------------------
+
     try:
         await message.reply_photo(
             photo=DS_PIC,
             caption=(
-                "<b><blockquote>⚠️ This bot contains 18+ Content.\nUse at your own risk.</blockquote>\n\n"
+                "<b><blockquote>⚠️ This bot contains 18+ Content.\n"
+                "Use at your own risk.</blockquote>\n\n"
                 f"📌 Read our <a href='https://t.me/{DS_BOT_USERNAME}?start=disclaimer'>Disclaimer</a> and "
                 f"<a href='https://t.me/{DS_BOT_USERNAME}?start=terms'>Terms</a></b>"
             ),
@@ -104,35 +113,36 @@ async def start(client, message):
 # =====================================================
 
 @Client.on_message(filters.private & filters.text & ~filters.command("start"))
-async def handle_user(bot, message):
+async def handle_user(client, message):
 
     text = message.text.lower().strip()
     user_id = message.from_user.id
 
     # --------------------------------------------------
-    # DESI VIDEO SECTION
+    # DESI / CORN VIDEO
     # --------------------------------------------------
-    if "desi video" in text:
 
-        # Check if user joined required channels
-        if not await checkSub(bot, message):
+    if "corn video" in text or "desi video" in text:
+
+        # FSUB Check
+        if not await checkSub(client, message):
             return
 
         tag = "desi"
         channel = DS_DESI_FILE_CHANNEL
 
-        # Daily limit
+        # Daily Limit
         ok = await check_and_increment(user_id, tag)
         if not ok:
-            return await message.reply("⚠️ You reached today's limit.\nTry again tomorrow!")
+            return await message.reply("⚠️ Daily limit reached.\nTry again tomorrow!")
 
-        # Random file fetch
+        # Fetch Random File
         file = await db.random_file(tag)
         if not file:
             return await message.reply("❌ No Corn videos found.")
 
         try:
-            sent = await bot.copy_message(
+            sent = await client.copy_message(
                 chat_id=message.chat.id,
                 from_chat_id=channel,
                 message_id=file["msg_id"],
@@ -143,6 +153,7 @@ async def handle_user(bot, message):
                 parse_mode="html"
             )
 
+            # Auto-delete after 60 seconds
             await asyncio.sleep(60)
             try:
                 await sent.delete()
@@ -150,16 +161,18 @@ async def handle_user(bot, message):
                 pass
 
         except:
-            # File missing → delete from database
+            # If file deleted from channel → remove from DB
             try:
                 await db.delete_file(file["msg_id"])
             except:
                 pass
-            await message.reply("⚠️ Failed to send video.\nIt may have been deleted.")
+
+            await message.reply("⚠️ Failed to send video.\nFile may have been deleted.")
 
     # --------------------------------------------------
-    # BOT DETAILS
+    # BOT DETAILS / REPO
     # --------------------------------------------------
+
     elif "bot & repo" in text or "bot details" in text:
 
         buttons = [
@@ -184,8 +197,9 @@ async def handle_user(bot, message):
             await message.reply_text(ABOUT_TXT, parse_mode="html")
 
     # --------------------------------------------------
-    # FALLBACK MESSAGE
+    # FALLBACK TEXT
     # --------------------------------------------------
+
     else:
         await message.reply_text(
             "I didn't understand that.\nUse the menu below 👇🏻",
