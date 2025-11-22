@@ -10,8 +10,8 @@ from pyrogram.types import (
 )
 
 from config import *
-from database import db
-from fsub import checkSub
+from plugins.database import db          # Updated import
+from fsub import checkSub                # fsub.py is in root, so import directly
 from script import LOG_TEXT, ABOUT_TXT, DS_TEXT, DST_TEXT
 from utils import check_and_increment
 
@@ -128,7 +128,7 @@ async def handle_user(client, message):
         if not await checkSub(client, message):
             return
 
-        tag = "desi"
+        tag = "corn"
         channel = DS_DESI_FILE_CHANNEL
 
         # Daily Limit
