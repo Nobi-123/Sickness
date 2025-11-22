@@ -128,7 +128,7 @@ async def handle_user(client, message):
         if not await checkSub(client, message):
             return
 
-        tag = "corn"
+        tag = "desi"
         channel = DS_DESI_FILE_CHANNEL
 
         # Daily Limit
