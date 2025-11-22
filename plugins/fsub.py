@@ -1,63 +1,64 @@
-# Nexa — Do Not Remove Credit
+# (c) Silent Ghost — Multi Channel Forced Subscription
 
+from pyrogram import Client
 from pyrogram.errors import UserNotParticipant
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import DS_FSUB_CHANNELS, DS_BOT_USERNAME
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+# ===========================
+# ADD MULTIPLE CHANNELS HERE
+# ===========================
+REQUIRED_CHANNELS = [
+    "yourchannel1",   # Example: "GhostUpdates"
+    "yourchannel2",   # Example: "GhostBots"
+    "yourchannel3",   # Optional
+]
 
 
-async def checkSub(client, message):
+async def checkSub(client: Client, message):
     user_id = message.from_user.id
-    not_joined = []
+    missing_channels = []
 
-    # Check membership for ALL required channels
-    for channel in DS_FSUB_CHANNELS:
+    # Check each required channel
+    for channel in REQUIRED_CHANNELS:
         try:
-            member = await client.get_chat_member(channel, user_id)
-
-            # If not proper member
-            if member.status not in ["member", "administrator", "creator"]:
-                not_joined.append(channel)
+            await client.get_chat_member(channel, user_id)
 
         except UserNotParticipant:
-            not_joined.append(channel)
+            # User not joined, mark as missing
+            missing_channels.append(channel)
 
         except Exception:
-            # If channel lookup fails → skip but don't break bot
+            # If bot is not admin / channel invalid
             continue
 
-    # If user is missing channels
-    if not_joined:
+    # ===========================
+    # User has NOT joined all channels
+    # ===========================
+    if missing_channels:
         buttons = []
 
-        # Create one button per channel
-        for ch in not_joined:
+        # Create button for each missing channel
+        for ch in missing_channels:
             try:
-                chat = await client.get_chat(ch)
-                if chat.username:
-                    buttons.append(
-                        [InlineKeyboardButton(f"Join {chat.title}", url=f"https://t.me/{chat.username}")]
-                    )
-                else:
-                    # private channels without username
-                    buttons.append(
-                        [InlineKeyboardButton(f"Join {chat.title}", url=chat.invite_link)]
-                    )
+                info = await client.get_chat(ch)
+                title = info.title
+                link = info.invite_link or f"https://t.me/{ch.replace('@','')}"
             except:
-                continue
+                title = ch
+                link = f"https://t.me/{ch.replace('@','')}"
 
-        # Retry button
-        buttons.append([
-            InlineKeyboardButton(
-                "♻️ Try Again",
-                url=f"https://t.me/{DS_BOT_USERNAME}?start=start"
-            )
-        ])
+            buttons.append([InlineKeyboardButton(title, url=link)])
+
+        buttons.append([InlineKeyboardButton("♻ Refresh", callback_data="refresh_fsub")])
 
         await message.reply_text(
-            "<b>You must join all channels below to continue:</b>",
-            reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode="html"
+            "**🚫 You must join all required channels to use this bot!**\n\n"
+            "👇 Join the channels below and press **Refresh**:",
+            reply_markup=InlineKeyboardMarkup(buttons)
         )
         return False
 
+    # ===========================
+    # User is fully subscribed
+    # ===========================
     return True
