@@ -112,13 +112,13 @@ async def handle_user(bot, message):
     # --------------------------------------------------
     # DESI VIDEO SECTION
     # --------------------------------------------------
-    if "desi video" in text:
+    if "Corn Video" in text:
 
         # Check if user joined required channels
         if not await checkSub(bot, message):
             return
 
-        tag = "desi"
+        tag = "Corn"
         channel = DS_DESI_FILE_CHANNEL
 
         # Daily limit
