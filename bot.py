@@ -1,7 +1,7 @@
 # (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
 
 from pyrogram import Client
-from config import DS_API_ID, DS_API_HASH, DS_BOT_TOKEN, OWNER_ID
+from config import DS_API_ID, DS_API_HASH, DS_BOT_TOKEN
 from utils import start_scheduler
 
 class Bot(Client):
