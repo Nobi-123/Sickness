@@ -23,7 +23,7 @@ DS_PIC = environ.get("DS_PIC", "https://files.catbox.moe/6oh471.jpg")
 # DATABASE CHANNELS (STORE FILES)
 # ─────────────────────────────────────────────
 
-DS_PORN_FILE_CHANNEL = int(environ.get("DS_DESI_FILE_CHANNEL", "-1003496332303"))
+DS_PORN_FILE_CHANNEL = int(environ.get("DS_PORN_FILE_CHANNEL", "-1003496332303"))
 
 # ─────────────────────────────────────────────
 # ADMINS
