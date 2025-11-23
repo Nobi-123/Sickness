@@ -19,7 +19,7 @@ async def admin_users(client, message):
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):
     """Send start message and save user in DB."""
-    
+
     if not await checkSub(client, message):
         return
 
@@ -48,15 +48,23 @@ async def start(client, message):
         await asyncio.sleep(180)
         return await msg.delete()
 
+    # Inline buttons
+    buttons = [
+        [InlineKeyboardButton("🎬 Video", callback_data="video")],
+        [InlineKeyboardButton("🤖 Bot & Repo Details", callback_data="bot_details")],
+        [InlineKeyboardButton("📌 Disclaimer", url=f"https://t.me/{DS_BOT_USERNAME}?start=disclaimer")],
+        [InlineKeyboardButton("📄 Terms", url=f"https://t.me/{DS_BOT_USERNAME}?start=terms")]
+    ]
+    reply_markup = InlineKeyboardMarkup(buttons)
+
     # Send start message
     try:
         await message.reply_photo(
             photo=DS_PIC,
             caption=(
-                "<b><blockquote>⚠️ This bot contains 18+ Content.\nUse at your own risk.</blockquote>\n\n"
-                f"📌 Read our <a href='https://t.me/{DS_BOT_USERNAME}?start=disclaimer'>Disclaimer</a> and "
-                f"<a href='https://t.me/{DS_BOT_USERNAME}?start=terms'>Terms</a></b>"
+                "<b><blockquote>⚠️ This bot contains 18+ Content.\nUse at your own risk.</blockquote></b>"
             ),
+            reply_markup=reply_markup,
             parse_mode=enums.ParseMode.HTML
         )
     except Exception:
@@ -67,29 +75,25 @@ async def start(client, message):
         )
 
 
-# ---------------- User Text Handler ----------------
-@Client.on_message(filters.private & filters.text & ~filters.command("start"))
-async def handle_user(bot, message):
-    text = message.text.lower().strip()
-    user_id = message.from_user.id
+# ---------------- Callback Query Handler ----------------
+@Client.on_callback_query()
+async def button_handler(client, callback_query):
+    data = callback_query.data
+    chat_id = callback_query.message.chat.id
 
-    # ---------------- Video Section ----------------
-    if "video" in text:
-        if not await checkSub(bot, message):
+    if data == "video":
+        if not await checkSub(client, callback_query.message):
             return
+        await callback_query.message.edit_text("🎬 Fetching a random video...")
 
-        tag = "Video"
-        channel = DS_PORN_FILE_CHANNEL
-
-        # Fetch random video
-        file = await db.random_file(tag)
+        file = await db.random_file("Video")
         if not file:
-            return await message.reply("❌ No videos found. Please wait until some videos are added.")
+            return await callback_query.message.edit_text("❌ No videos found.")
 
         try:
-            sent = await bot.copy_message(
-                chat_id=message.chat.id,
-                from_chat_id=channel,
+            sent = await client.copy_message(
+                chat_id=chat_id,
+                from_chat_id=DS_PORN_FILE_CHANNEL,
                 message_id=file["msg_id"],
                 caption=(
                     "<b>Powered by <a href='https://t.me/NexaCoders'>Nexa Network</a></b>\n\n"
@@ -103,32 +107,46 @@ async def handle_user(bot, message):
             except Exception:
                 pass
         except Exception:
-            try:
-                await db.delete_file(file["msg_id"])
-            except Exception:
-                pass
-            await message.reply("⚠️ Failed to send video. It may have been deleted.")
+            await callback_query.message.edit_text("⚠️ Failed to send video.")
 
-    # ---------------- Bot Details ----------------
+    elif data == "bot_details":
+        buttons = [[InlineKeyboardButton("Buy Repo", url="https://t.me/Falcoxr")]]
+        await callback_query.message.edit_text(
+            ABOUT_TXT,
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode=enums.ParseMode.HTML,
+            disable_web_page_preview=True
+        )
+
+
+# ---------------- User Text Handler ----------------
+@Client.on_message(filters.private & filters.text & ~filters.command("start"))
+async def handle_user(bot, message):
+    text = message.text.lower().strip()
+    user_id = message.from_user.id
+
+    if not await checkSub(bot, message):
+        return
+
+    if "video" in text:
+        # Trigger video logic
+        await message.reply_text("🎬 Please click the 'Video' button above for a random video.")
+
     elif "bot & repo" in text or "bot details" in text:
         buttons = [[InlineKeyboardButton("Buy Repo", url="https://t.me/Falcoxr")]]
-        try:
-            msg = await message.reply_text(
-                ABOUT_TXT,
-                reply_markup=InlineKeyboardMarkup(buttons),
-                parse_mode=enums.ParseMode.HTML,
-                disable_web_page_preview=True
-            )
-            await asyncio.sleep(300)
-            try:
-                await msg.delete()
-            except Exception:
-                pass
-        except Exception:
-            await message.reply_text(ABOUT_TXT, parse_mode=enums.ParseMode.HTML)
-
-    # ---------------- Fallback ----------------
-    else:
         await message.reply_text(
-            "I didn't understand that. Please type 'Video' or 'Bot & Repo Details'."
+            ABOUT_TXT,
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode=enums.ParseMode.HTML,
+            disable_web_page_preview=True
+        )
+
+    else:
+        buttons = [
+            [InlineKeyboardButton("🎬 Video", callback_data="video")],
+            [InlineKeyboardButton("🤖 Bot & Repo Details", callback_data="bot_details")]
+        ]
+        await message.reply_text(
+            "I didn't understand that. Please use the buttons below:",
+            reply_markup=InlineKeyboardMarkup(buttons)
         )
