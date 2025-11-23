@@ -1,43 +1,44 @@
-# (c) Silent Ghost — Auto FSub + Auto Leave (No Refresh Button)
+# (c) Silent Ghost — Force-Sub System V2 + Auto Protection
 
 import asyncio
-from pyrogram import Client, filters
+from pyrogram import Client
 from pyrogram.errors import UserNotParticipant, FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from database import db  # 👈 must store users
+from database import db
 
-
+# REQUIRED CHANNELS (edit usernames only)
 REQUIRED_CHANNELS = ["NexaCoders", "Nexameetup"]
 
+# AUTO BAN AFTER LEAVE?
+AUTO_BAN = False  # True = Auto Ban | False = Only warns user
 
-# ---------------- SAVE USERS ----------------
+
+# -------- SAVE USER --------
 async def save_user(user_id):
-    users = await db.get_all_users()
-    if user_id not in users:
+    if not await db.is_user_exist(user_id):
         await db.add_user(user_id)
 
 
-# ---------------- CHECK SUB ----------------
-async def checkSub(client, message):
-    user_id = message.from_user.id
-    await save_user(user_id)
+# -------- GENERATE JOIN BUTTONS --------
+async def generate_buttons(client, missing):
+    btn = []
+    for ch in missing:
+        try:
+            info = await client.get_chat(ch)
+            link = info.invite_link or f"https://t.me/{info.username}"
+            title = info.title
+        except:
+            link = f"https://t.me/{ch}"
+            title = ch
 
-    markup = await check_subscription(client, user_id)
+        btn.append([InlineKeyboardButton(f"📢 Join {title}", url=link)])
 
-    if markup:
-        await message.reply(
-            "**⚠ Join the required channels to use the bot!**",
-            reply_markup=markup
-        )
-        return False
-
-    return True
+    return InlineKeyboardMarkup(btn)
 
 
-
+# -------- CHECK SUB --------
 async def check_subscription(client, user_id):
     missing = []
-    buttons = []
 
     for ch in REQUIRED_CHANNELS:
         try:
@@ -50,54 +51,68 @@ async def check_subscription(client, user_id):
     if not missing:
         return None
 
-    for ch in missing:
-        try:
-            info = await client.get_chat(ch)
-            link = info.invite_link or f"https://t.me/{info.username}"
-        except:
-            link = f"https://t.me/{ch}"
-
-        buttons.append([InlineKeyboardButton(f"📢 Join {ch}", url=link)])
-
-    return InlineKeyboardMarkup(buttons)
+    markup = await generate_buttons(client, missing)
+    return markup
 
 
+# -------- MAIN ENTRY CHECK (Start + Messages + Callbacks) --------
+async def checkSub(client, message):
+    user_id = message.from_user.id
+    await save_user(user_id)
 
-# ---------------- REALTIME RECHECK ----------------
-async def force_check_loop(client: Client):
-    print("🔄 Real-time subscription verification active...")
+    markup = await check_subscription(client, user_id)
+
+    if markup:
+        await message.reply(
+            "**⚠ You must join required channel(s) to continue.**",
+            reply_markup=markup
+        )
+        return False
+    return True
+
+
+# -------- AUTO REAL-TIME MONITOR --------
+async def auto_monitor(client: Client):
+
+    print("🛡 Real-Time Protection Running...")
+
+    notified = set()  # avoid repeating same warning
 
     while True:
         users = await db.get_all_users()
 
-        for user_id in users:
+        for u in users:
+            user_id = u["user_id"]
+
             markup = await check_subscription(client, user_id)
 
-            if markup:
-                try:
-                    await client.send_message(
-                        user_id,
-                        "**⚠ You left the channel! Rejoin to continue using the bot!**",
-                        reply_markup=markup
-                    )
-                except FloodWait as e:
-                    await asyncio.sleep(e.value)
-                except:
-                    pass
+            if markup:  # user left channel
+                if AUTO_BAN:
+                    try:
+                        await client.send_message(
+                            user_id, "**❌ You left the channel — You are banned.**"
+                        )
+                        notified.discard(user_id)
+                        await db.delete_user(user_id)
+                        continue
+                    except:
+                        continue
 
-        await asyncio.sleep(30)  # repeat
+                if user_id not in notified:
+                    try:
+                        await client.send_message(
+                            user_id,
+                            "**⚠ You left required channel(s)! Rejoin or bot will stop.**",
+                            reply_markup=markup
+                        )
+                        notified.add(user_id)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.value)
+                    except:
+                        pass
 
+            else:
+                if user_id in notified:
+                    notified.remove(user_id)
 
-
-# ---------------- START HANDLER ----------------
-@Client.on_message(filters.private & filters.command("start"))
-async def start_handler(client, message):
-    await save_user(message.from_user.id)
-
-    if not hasattr(client, "rt_start"):
-        asyncio.create_task(force_check_loop(client))
-        client.rt_start = True
-
-    await checkSub(client, message)
-
-    await message.reply("✅ You are verified! Continue using the bot.")
+        await asyncio.sleep(25)
