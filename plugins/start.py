@@ -2,31 +2,13 @@
 
 import asyncio
 from pyrogram import Client, filters, enums
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup
-)
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from config import *
 from database import db
 from plugins.fsub import checkSub
 from plugins.script import LOG_TEXT, ABOUT_TXT, DS_TEXT, DST_TEXT
 from utils import check_and_increment
-
-
-# =====================================================
-# USER MAIN KEYBOARD
-# =====================================================
-
-keyboard = ReplyKeyboardMarkup(
-    [
-        [KeyboardButton("Video")],
-        [KeyboardButton("Bot & Repo Details")],
-    ],
-    resize_keyboard=True
-)
 
 
 # =====================================================
@@ -60,19 +42,19 @@ async def start(client, message):
                 DS_LOG_CHANNEL,
                 LOG_TEXT.format(user_id, message.from_user.mention)
             )
-        except:
+        except Exception:
             pass
 
     # ------ PAYLOAD HANDLING ------
     payload = message.command[1] if len(message.command) > 1 else None
 
     if payload == "disclaimer":
-        msg = await message.reply_text(DS_TEXT, parse_mode="html")
+        msg = await message.reply_text(DS_TEXT, parse_mode=enums.ParseMode.HTML)
         await asyncio.sleep(180)
         return await msg.delete()
 
     if payload == "terms":
-        msg = await message.reply_text(DST_TEXT, parse_mode="html")
+        msg = await message.reply_text(DST_TEXT, parse_mode=enums.ParseMode.HTML)
         await asyncio.sleep(180)
         return await msg.delete()
 
@@ -85,18 +67,14 @@ async def start(client, message):
                 f"📌 Read our <a href='https://t.me/{DS_BOT_USERNAME}?start=disclaimer'>Disclaimer</a> and "
                 f"<a href='https://t.me/{DS_BOT_USERNAME}?start=terms'>Terms</a></b>"
             ),
-            reply_markup=keyboard,
-            has_spoiler=True,
-            parse_mode="html"
+            parse_mode=enums.ParseMode.HTML
         )
-    except:
+    except Exception:
         await message.reply_text(
             "⚠️ This bot contains 18+ content.\n"
             f"Disclaimer: https://t.me/{DS_BOT_USERNAME}?start=disclaimer\n"
             f"Terms: https://t.me/{DS_BOT_USERNAME}?start=terms"
         )
-
-    await message.reply_text("Select your category 👇🏻", reply_markup=keyboard)
 
 
 # =====================================================
@@ -112,14 +90,14 @@ async def handle_user(bot, message):
     # --------------------------------------------------
     # DESI VIDEO SECTION
     # --------------------------------------------------
-    if "Video" in text:
+    if "video" in text:
 
         # Check if user joined required channels
         if not await checkSub(bot, message):
             return
 
         tag = "Video"
-        channel = DS_DESI_FILE_CHANNEL
+        channel = DS_PORN_FILE_CHANNEL
 
         # Daily limit
         ok = await check_and_increment(user_id, tag)
@@ -140,20 +118,20 @@ async def handle_user(bot, message):
                     "<b>Powered by <a href='https://t.me/NexaCoders'>Nexa Network</a></b>\n\n"
                     "<blockquote>This file will auto-delete in 1 minute.</blockquote>"
                 ),
-                parse_mode="html"
+                parse_mode=enums.ParseMode.HTML
             )
 
             await asyncio.sleep(60)
             try:
                 await sent.delete()
-            except:
+            except Exception:
                 pass
 
-        except:
+        except Exception:
             # File missing → delete from database
             try:
                 await db.delete_file(file["msg_id"])
-            except:
+            except Exception:
                 pass
             await message.reply("⚠️ Failed to send video.\nIt may have been deleted.")
 
@@ -170,24 +148,23 @@ async def handle_user(bot, message):
             msg = await message.reply_text(
                 ABOUT_TXT,
                 reply_markup=InlineKeyboardMarkup(buttons),
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
                 disable_web_page_preview=True
             )
 
             await asyncio.sleep(300)
             try:
                 await msg.delete()
-            except:
+            except Exception:
                 pass
 
-        except:
-            await message.reply_text(ABOUT_TXT, parse_mode="html")
+        except Exception:
+            await message.reply_text(ABOUT_TXT, parse_mode=enums.ParseMode.HTML)
 
     # --------------------------------------------------
     # FALLBACK MESSAGE
     # --------------------------------------------------
     else:
         await message.reply_text(
-            "I didn't understand that.\nUse the menu below 👇🏻",
-            reply_markup=keyboard
+            "I didn't understand that. Please type 'Video' or 'Bot & Repo Details'."
         )
