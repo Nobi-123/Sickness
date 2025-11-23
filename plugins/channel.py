@@ -5,7 +5,7 @@ from config import DS_PORN_FILE_CHANNEL
 from plugins.database import db
 
 @Client.on_message(filters.video & filters.chat(DS_PORN_FILE_CHANNEL))
-async def save_desi(_, message):
+async def save_video(_, message):
     if message.video:
         await db.save_file(
             caption=message.caption or "",
