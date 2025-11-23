@@ -1,8 +1,7 @@
-# (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
+# Nexa # Dont Remove Credit
 
 from pyrogram import Client
 from config import DS_API_ID, DS_API_HASH, DS_BOT_TOKEN
-from utils import start_scheduler
 
 class Bot(Client):
 
@@ -17,10 +16,9 @@ class Bot(Client):
             sleep_threshold=5
         )
 
-      
+
     async def start(self):  
         await super().start()
-        await start_scheduler()
         me = await self.get_me()
         self.username = '@' + me.username
         print(f'{self.username} Bot Started.')
@@ -31,5 +29,3 @@ class Bot(Client):
         print('Bot Stopped Bye')
 
 Bot().run()
-
-# (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
