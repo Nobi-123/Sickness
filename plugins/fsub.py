@@ -1,4 +1,4 @@
-# (c) Silent Ghost — Auto FSub + Auto Leave (No Refresh Button)
+# Nexa — Auto FSub + Auto Leave (No Refresh Button)
 
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, FloodWait
