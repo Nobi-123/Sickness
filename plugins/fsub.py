@@ -5,23 +5,21 @@ from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# REQUIRED CHANNELS
+
+# REQUIRED CHANNELS (EDIT HERE)
 REQUIRED_CHANNELS = ["NexaCoders", "Nexameetup"]
 
 
-# ---------------- FORCE-SUB CHECK FUNCTION ----------------
+# ---------------- CHECK SUBSCRIPTION ----------------
 async def checkSub(client, message):
     user_id = message.from_user.id
     markup = await check_subscription(client, user_id)
 
     if markup:
-        try:
-            await message.reply(
-                "**⚠ You must join the required channel(s) to use the bot.**",
-                reply_markup=markup
-            )
-        except:
-            pass
+        await message.reply(
+            "**⚠ You must join the required channel(s) to use the bot.**",
+            reply_markup=markup
+        )
         return False
 
     return True
@@ -29,28 +27,25 @@ async def checkSub(client, message):
 
 
 async def check_subscription(client, user_id):
-    missing_channels = []
+    missing = []
     buttons = []
 
-    for channel in REQUIRED_CHANNELS:
+    for ch in REQUIRED_CHANNELS:
         try:
-            await client.get_chat_member(channel, user_id)
-
+            await client.get_chat_member(ch, user_id)
         except UserNotParticipant:
-            missing_channels.append(channel)
+            missing.append(ch)
+        except:
+            pass
 
-        except Exception:
-            continue
-
-    if not missing_channels:
+    if not missing:
         return None
 
-    for ch in missing_channels:
+    for ch in missing:
         try:
             info = await client.get_chat(ch)
             link = info.invite_link or f"https://t.me/{info.username}"
             title = info.title
-
         except:
             link = f"https://t.me/{ch}"
             title = ch
@@ -61,41 +56,40 @@ async def check_subscription(client, user_id):
 
 
 
-# ---------------- AUTO-LEAVE SYSTEM ----------------
+# ---------------- AUTO LEAVE NON REQUIRED GROUPS ----------------
 async def auto_leave_chats(client: Client):
     print("🚀 Auto Leave Started...")
 
     while True:
-        async for dialog in client.get_dialogs():
+        async for dialog in client.iter_dialogs():
+            chat = dialog.chat
 
-            if dialog.chat.type == "private":
+            if chat.type == "private":
                 continue
 
-            if dialog.chat.username and dialog.chat.username in REQUIRED_CHANNELS:
+            if chat.username and chat.username in REQUIRED_CHANNELS:
                 continue
 
             try:
-                await client.leave_chat(dialog.chat.id)
-                print(f"🚪 Left: {dialog.chat.title or dialog.chat.id}")
-
+                await client.leave_chat(chat.id)
+                print(f"🚪 LEFT: {chat.title or chat.id}")
             except FloodWait as e:
                 await asyncio.sleep(e.value)
+            except Exception as e:
+                print(e)
 
-            except Exception as err:
-                print(err)
-
-        await asyncio.sleep(3600)   # check every 1 hour
-
+        await asyncio.sleep(3600)  # Check every hour
 
 
-# ---------------- REAL-TIME FORCED CHECK LOOP ----------------
+
+# ---------------- REAL-TIME MONITORING ----------------
 async def force_check_loop(client: Client):
-    print("🔄 Real-Time Forced Subscription Monitoring Started...")
+    print("🔄 Real-time subscription monitoring running...")
 
     while True:
-        async for dialog in client.get_dialogs():
+        async for dialog in client.iter_dialogs():
 
-            if dialog.chat.type != "private":
+            if dialog.chat.type != "private":   # only DM users
                 continue
 
             markup = await check_subscription(client, dialog.chat.id)
@@ -110,18 +104,17 @@ async def force_check_loop(client: Client):
                 except:
                     pass
 
-        await asyncio.sleep(25)   # 🔥 Real-time check every 25s
+        await asyncio.sleep(25)  # Fast check
 
 
 
-# ---------------- ACTIVATE SYSTEM SILENTLY ON START ----------------
+# ---------------- RUN ON START ----------------
 @Client.on_message(filters.private & filters.command("start"))
-async def run_system(client, message):
-    # Start background tasks only once (avoid duplicate loops)
+async def start_handler(client, message):
+
     if not hasattr(client, "system_started"):
         asyncio.create_task(auto_leave_chats(client))
         asyncio.create_task(force_check_loop(client))
         client.system_started = True
 
-    # Return False → so main start.py message continues normally
-    return False
+    await checkSub(client, message)
