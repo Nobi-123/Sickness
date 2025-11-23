@@ -15,7 +15,7 @@ DS_API_HASH = environ.get("DS_API_HASH", "231c18ea7273824491d6bf05425ab74e")
 DS_BOT_TOKEN = environ.get("DS_BOT_TOKEN", "")
 DS_BOT_USERNAME = environ.get("DS_BOT_USERNAME", "SicknessRoBot")  # bot username without @
 
-DS_LOG_CHANNEL = int(environ.get("DS_LOG_CHANNEL", "-1002417142493"))
+DS_LOG_CHANNEL = int(environ.get("DS_LOG_CHANNEL", "-1003496332303"))
 DS_STICKER = environ.get("DS_STICKER", "")
 DS_PIC = environ.get("DS_PIC", "https://files.catbox.moe/6oh471.jpg")
 
@@ -47,9 +47,6 @@ DS_DB_NAME = environ.get("DS_DB_NAME", "SickNess")
 # ─────────────────────────────────────────────
 # FORCE SUBSCRIBE
 # ─────────────────────────────────────────────
-
-DS_AUTH_CHANNEL = int(environ.get("DS_AUTH_CHANNEL", "-1002890076223"))
-
 # ─────────────────────────────────────────────
 # VERIFICATION SYSTEM
 # ─────────────────────────────────────────────
