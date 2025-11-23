@@ -1,7 +1,7 @@
 # (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
 
 from pyrogram import Client, filters
-from config import DS_DESI_FILE_CHANNEL, DS_VIDESI_FILE_CHANNEL
+from config import DS_PORN_FILE_CHANNEL
 from plugins.database import db
 
 @Client.on_message(filters.video & filters.chat(DS_DESI_FILE_CHANNEL))
