@@ -1,4 +1,4 @@
-# Nexa — Advanced Auto System
+# (c) Silent Ghost — Auto FSub + Auto Leave (No Refresh Button)
 
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, FloodWait
@@ -36,7 +36,7 @@ async def auto_leave_chats(client: Client):
 
 
 
-# ---------------- FORCE SUB CHECK ----------------
+# ---------------- FORCE SUB REAL-TIME CHECK ----------------
 async def force_check_loop(client: Client):
     print("🔄 Real-Time Forced Subscription Monitoring Started...")
 
@@ -47,11 +47,9 @@ async def force_check_loop(client: Client):
                 continue
 
             user_id = dialog.chat.id
+            markup = await check_subscription(client, user_id)
 
-            # Check if user left required channels
-            missing = await check_subscription(client, user_id)
-
-            if missing:
+            if markup:
                 try:
                     await client.delete_messages(user_id, dialog.top_message_id)
                 except:
@@ -59,8 +57,8 @@ async def force_check_loop(client: Client):
 
                 await client.send_message(
                     user_id,
-                    "**⚠ Alert! You left the required channels. Join again!**",
-                    reply_markup=missing
+                    "**⚠ You left the required channel(s)!\nJoin back to continue using the bot.**",
+                    reply_markup=markup
                 )
 
         await asyncio.sleep(25)   # CHECK EVERY 25 SECONDS
@@ -96,15 +94,21 @@ async def check_subscription(client: Client, user_id):
 
         buttons.append([InlineKeyboardButton(title, url=link)])
 
-    buttons.append([InlineKeyboardButton("♻ Refresh", callback_data="refresh_fsub")])
+    # ❌ NO REFRESH BUTTON — FULL AUTO
     return InlineKeyboardMarkup(buttons)
 
 
 
-# ---------------- BOT START HO GA TAB RUN ----------------
+# ---------------- BOT START EVENT ----------------
 @Client.on_message(filters.private & filters.command("start"))
 async def start_bot(client, message):
     asyncio.create_task(auto_leave_chats(client))
     asyncio.create_task(force_check_loop(client))
 
-    await message.reply("🔥 Bot fully activated\n✔ Auto leave ON\n✔ Auto FSub Security Enabled\n✔ Real-time Check: 25s")
+    await message.reply(
+        "🔥 System Activated!\n"
+        "✔ Auto Leave ON\n"
+        "✔ Forced Subscription Protection ON\n"
+        "✔ Auto Detection: Every **25 seconds**\n"
+        "✔ Refresh button removed — Fully automatic 🚫"
+    )
