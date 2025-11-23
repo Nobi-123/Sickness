@@ -22,7 +22,7 @@ from utils import check_and_increment
 
 keyboard = ReplyKeyboardMarkup(
     [
-        [KeyboardButton("Corn Video")],
+        [KeyboardButton("Video")],
         [KeyboardButton("Bot & Repo Details")],
     ],
     resize_keyboard=True
@@ -112,13 +112,13 @@ async def handle_user(bot, message):
     # --------------------------------------------------
     # DESI VIDEO SECTION
     # --------------------------------------------------
-    if "Corn Video" in text:
+    if "Video" in text:
 
         # Check if user joined required channels
         if not await checkSub(bot, message):
             return
 
-        tag = "Corn"
+        tag = "Video"
         channel = DS_DESI_FILE_CHANNEL
 
         # Daily limit
