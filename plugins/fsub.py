@@ -4,20 +4,29 @@ import asyncio
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from database import db  # 👈 must store users
 
 
-# REQUIRED CHANNELS (EDIT HERE)
 REQUIRED_CHANNELS = ["NexaCoders", "Nexameetup"]
 
 
-# ---------------- CHECK SUBSCRIPTION ----------------
+# ---------------- SAVE USERS ----------------
+async def save_user(user_id):
+    users = await db.get_all_users()
+    if user_id not in users:
+        await db.add_user(user_id)
+
+
+# ---------------- CHECK SUB ----------------
 async def checkSub(client, message):
     user_id = message.from_user.id
+    await save_user(user_id)
+
     markup = await check_subscription(client, user_id)
 
     if markup:
         await message.reply(
-            "**⚠ You must join the required channel(s) to use the bot.**",
+            "**⚠ Join the required channels to use the bot!**",
             reply_markup=markup
         )
         return False
@@ -45,76 +54,50 @@ async def check_subscription(client, user_id):
         try:
             info = await client.get_chat(ch)
             link = info.invite_link or f"https://t.me/{info.username}"
-            title = info.title
         except:
             link = f"https://t.me/{ch}"
-            title = ch
 
-        buttons.append([InlineKeyboardButton(f"📢 Join {title}", url=link)])
+        buttons.append([InlineKeyboardButton(f"📢 Join {ch}", url=link)])
 
     return InlineKeyboardMarkup(buttons)
 
 
 
-# ---------------- AUTO LEAVE NON REQUIRED GROUPS ----------------
-async def auto_leave_chats(client: Client):
-    print("🚀 Auto Leave Started...")
-
-    while True:
-        async for dialog in client.iter_dialogs():
-            chat = dialog.chat
-
-            if chat.type == "private":
-                continue
-
-            if chat.username and chat.username in REQUIRED_CHANNELS:
-                continue
-
-            try:
-                await client.leave_chat(chat.id)
-                print(f"🚪 LEFT: {chat.title or chat.id}")
-            except FloodWait as e:
-                await asyncio.sleep(e.value)
-            except Exception as e:
-                print(e)
-
-        await asyncio.sleep(3600)  # Check every hour
-
-
-
-# ---------------- REAL-TIME MONITORING ----------------
+# ---------------- REALTIME RECHECK ----------------
 async def force_check_loop(client: Client):
-    print("🔄 Real-time subscription monitoring running...")
+    print("🔄 Real-time subscription verification active...")
 
     while True:
-        async for dialog in client.iter_dialogs():
+        users = await db.get_all_users()
 
-            if dialog.chat.type != "private":   # only DM users
-                continue
-
-            markup = await check_subscription(client, dialog.chat.id)
+        for user_id in users:
+            markup = await check_subscription(client, user_id)
 
             if markup:
                 try:
                     await client.send_message(
-                        dialog.chat.id,
-                        "**⚠ You left the channel! Join back to continue using the bot.**",
+                        user_id,
+                        "**⚠ You left the channel! Rejoin to continue using the bot!**",
                         reply_markup=markup
                     )
+                except FloodWait as e:
+                    await asyncio.sleep(e.value)
                 except:
                     pass
 
-        await asyncio.sleep(25)  # Fast check
+        await asyncio.sleep(30)  # repeat
 
 
 
-# ---------------- RUN ON START ----------------
+# ---------------- START HANDLER ----------------
 @Client.on_message(filters.private & filters.command("start"))
 async def start_handler(client, message):
+    await save_user(message.from_user.id)
 
-    if not hasattr(client, "system_started"):
-        asyncio.create_task(auto_leave_chats(client))
+    if not hasattr(client, "rt_start"):
         asyncio.create_task(force_check_loop(client))
-        client.system_started = True
+        client.rt_start = True
 
     await checkSub(client, message)
+
+    await message.reply("✅ You are verified! Continue using the bot.")
