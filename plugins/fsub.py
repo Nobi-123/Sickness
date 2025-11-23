@@ -114,16 +114,14 @@ async def force_check_loop(client: Client):
 
 
 
-# ---------------- ACTIVATE AUTO SYSTEM ON START ----------------
+# ---------------- ACTIVATE SYSTEM SILENTLY ON START ----------------
 @Client.on_message(filters.private & filters.command("start"))
 async def run_system(client, message):
-    asyncio.create_task(auto_leave_chats(client))
-    asyncio.create_task(force_check_loop(client))
+    # Start background tasks only once (avoid duplicate loops)
+    if not hasattr(client, "system_started"):
+        asyncio.create_task(auto_leave_chats(client))
+        asyncio.create_task(force_check_loop(client))
+        client.system_started = True
 
-    await message.reply(
-        "🔥 System Activated!\n\n"
-        "✔ Auto Leave ON\n"
-        "✔ Force Subscription ON\n"
-        "✔ Real-Time Protection (Every 25s)\n"
-        "🚫 No Refresh Button — Fully Automatic"
-    )
+    # Return False → so main start.py message continues normally
+    return False
