@@ -1,4 +1,4 @@
-# (c) Silent Ghost — Force-Sub System V2 + Auto Protection
+# (c) Silent Ghost — Force Sub System V3 (Next Level)
 
 import asyncio
 from pyrogram import Client
@@ -6,37 +6,39 @@ from pyrogram.errors import UserNotParticipant, FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database import db
 
-# REQUIRED CHANNELS (edit usernames only)
-REQUIRED_CHANNELS = ["NexaCoders", "Nexameetup"]
+# REQUIRED CHANNELS
+REQUIRED_CHANNELS = ["NexaCoders", "NexaMeetup"]
 
-# AUTO BAN AFTER LEAVE?
-AUTO_BAN = False  # True = Auto Ban | False = Only warns user
+# SYSTEM CONFIG (Dynamic - Can be changed via Admin Panel)
+SYSTEM_STATE = {
+    "auto_ban": False,
+    "auto_mute": True,
+    "auto_warnings": True,
+    "monitor": True
+}
+
+# TRACK WARNINGS + STATUS
+warned_users = set()
+muted_users = set()
 
 
-# -------- SAVE USER --------
-async def save_user(user_id):
-    if not await db.is_user_exist(user_id):
-        await db.add_user(user_id)
-
-
-# -------- GENERATE JOIN BUTTONS --------
-async def generate_buttons(client, missing):
+# ---------------- JOIN BUTTONS ----------------
+async def join_buttons(client, missing):
     btn = []
-    for ch in missing:
+    for channel in missing:
         try:
-            info = await client.get_chat(ch)
-            link = info.invite_link or f"https://t.me/{info.username}"
-            title = info.title
+            info = await client.get_chat(channel)
+            url = info.invite_link or f"https://t.me/{info.username}"
+            name = info.title
         except:
-            link = f"https://t.me/{ch}"
-            title = ch
+            url = f"https://t.me/{channel}"
+            name = channel
 
-        btn.append([InlineKeyboardButton(f"📢 Join {title}", url=link)])
-
+        btn.append([InlineKeyboardButton(f"📢 Join {name}", url=url)])
     return InlineKeyboardMarkup(btn)
 
 
-# -------- CHECK SUB --------
+# ---------------- SUBSCRIPTION CHECK ----------------
 async def check_subscription(client, user_id):
     missing = []
 
@@ -45,74 +47,88 @@ async def check_subscription(client, user_id):
             await client.get_chat_member(ch, user_id)
         except UserNotParticipant:
             missing.append(ch)
-        except:
-            pass
 
     if not missing:
         return None
 
-    markup = await generate_buttons(client, missing)
-    return markup
+    return await join_buttons(client, missing)
 
 
-# -------- MAIN ENTRY CHECK (Start + Messages + Callbacks) --------
+# ---------------- ENTRY CHECK FOR ALL MESSAGES ----------------
 async def checkSub(client, message):
-    user_id = message.from_user.id
-    await save_user(user_id)
+    user = message.from_user.id
+    await db.add_user(user) if not await db.is_user_exist(user) else None
 
-    markup = await check_subscription(client, user_id)
+    markup = await check_subscription(client, user)
 
     if markup:
-        await message.reply(
-            "**⚠ You must join required channel(s) to continue.**",
-            reply_markup=markup
-        )
+        if SYSTEM_STATE["auto_mute"]:
+            muted_users.add(user)
+
+        if SYSTEM_STATE["auto_warnings"] and user not in warned_users:
+            warned_users.add(user)
+
+            await message.reply(
+                "**⚠ You must join required channel(s) to use this bot.**",
+                reply_markup=markup
+            )
         return False
+
+    # user verified -> remove from warning/mute system
+    warned_users.discard(user)
+    muted_users.discard(user)
     return True
 
 
-# -------- AUTO REAL-TIME MONITOR --------
+# ---------------- AUTO MONITOR SYSTEM ----------------
 async def auto_monitor(client: Client):
 
-    print("🛡 Real-Time Protection Running...")
+    if not SYSTEM_STATE["monitor"]:
+        print("⏸ Monitor Disabled")
+        return
 
-    notified = set()  # avoid repeating same warning
+    print("🛡 Real Time Monitor V3 Activated...")
 
     while True:
         users = await db.get_all_users()
 
         for u in users:
             user_id = u["user_id"]
-
             markup = await check_subscription(client, user_id)
 
-            if markup:  # user left channel
-                if AUTO_BAN:
+            if markup:  # left channel
+                # Auto Ban
+                if SYSTEM_STATE["auto_ban"]:
                     try:
-                        await client.send_message(
-                            user_id, "**❌ You left the channel — You are banned.**"
-                        )
-                        notified.discard(user_id)
+                        await client.send_message(user_id, "❌ You left required channel — banned.")
                         await db.delete_user(user_id)
                         continue
                     except:
-                        continue
+                        pass
 
-                if user_id not in notified:
+                # Auto Warning
+                if SYSTEM_STATE["auto_warnings"] and user_id not in warned_users:
+                    warned_users.add(user_id)
                     try:
                         await client.send_message(
                             user_id,
-                            "**⚠ You left required channel(s)! Rejoin or bot will stop.**",
+                            "⚠ You left channel!\nJoin back to continue.",
                             reply_markup=markup
                         )
-                        notified.add(user_id)
-                    except FloodWait as e:
-                        await asyncio.sleep(e.value)
                     except:
                         pass
 
+                # Auto Mute (just logical mute, bots can't mute private chat)
+                muted_users.add(user_id)
+
             else:
-                if user_id in notified:
-                    notified.remove(user_id)
+                # User rejoined
+                if user_id in muted_users or user_id in warned_users:
+                    try:
+                        await client.send_message(user_id, "✅ Thanks for rejoining! Access restored.")
+                    except:
+                        pass
+                muted_users.discard(user_id)
+                warned_users.discard(user_id)
 
         await asyncio.sleep(25)
