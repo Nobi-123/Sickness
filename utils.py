@@ -1,121 +1,72 @@
-# Nexa  # Dont Remove Credit
+# Nexa — Advanced Verification System | Permanent Storage | Owner Control
 
 import datetime
-import pytz, random, string  
-from pytz import timezone
-from datetime import date 
+import random, string
 from shortzy import Shortzy
-from plugins.database import db   # Still used only for storing users if needed
-
-# ======================================================================= #
+from database import db
+from config import DS_API, DS_URL
 
 TOKENS = {}
-VERIFIED = {}
 
-# ======================================================================= #
-# TIME STRING → SECONDS
-# ======================================================================= #
+# ================== TOKEN GENERATOR ================== #
 
-async def get_seconds(time_string):
-    def extract_value_and_unit(ts):
-        value = ""
-        index = 0
-        while index < len(ts) and ts[index].isdigit():
-            value += ts[index]
-            index += 1
-        unit = ts[index:].lstrip()
-        return int(value) if value else 0, unit
+async def generate_token():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=7))
 
-    value, unit = extract_value_and_unit(time_string)
 
-    return {
-        "s": value,
-        "min": value * 60,
-        "hour": value * 3600,
-        "day": value * 86400,
-        "month": value * 86400 * 30,
-        "year": value * 86400 * 365
-    }.get(unit, 0)
+async def create_verify_link(user_id):
+    token = await generate_token()
+    TOKENS[user_id] = token
 
-# ======================================================================= #
-# LINK SHORTENER
-# ======================================================================= #
+    raw_url = f"https://t.me/{DS_URL}?start=verify-{user_id}-{token}"
+    short_link = await Shortzy(api_key=DS_API, base_site=DS_URL).convert(raw_url)
 
-async def get_verify_shorted_link(link):
-    shortzy = Shortzy(api_key=DS_API, base_site=DS_URL)
-    return await shortzy.convert(link)
+    return short_link
 
-# ======================================================================= #
-# TOKEN HANDLER
-# ======================================================================= #
 
-async def check_token(bot, userid, token):
-    user = await bot.get_users(userid)
-    user_tokens = TOKENS.get(user.id, {})
-    return token in user_tokens and user_tokens[token] is False
+# ================== VERIFY CHECK ================== #
 
-async def get_token(bot, userid, link):
-    user = await bot.get_users(userid)
-    
-    token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
-    
-    TOKENS[user.id] = {token: False}
+async def verify_user(user_id, token):
 
-    verify_url = f"{link}verify-{user.id}-{token}"
-    return await get_verify_shorted_link(verify_url)
-
-async def verify_user(bot, userid, token):
-    user = await bot.get_users(userid)
-    TOKENS[user.id] = {token: True}
-    VERIFIED[user.id] = str(date.today())
-
-async def check_verification(bot, userid):
-    user = await bot.get_users(userid)
-    today = date.today()
-    
-    if user.id not in VERIFIED:
+    # Check token match
+    if TOKENS.get(user_id) != token:
         return False
 
-    saved = VERIFIED[user.id]  # yyyy-mm-dd
-    y, m, d = saved.split('-')
-    old = date(int(y), int(m), int(d))
+    # Store verification in DB
+    expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=1)).timestamp()
+    await db.update_user({"id": user_id, "verified_until": expiry})
 
-    return old >= today
+    del TOKENS[user_id]
+    return True
 
-# ======================================================================= #
-# LIMIT SYSTEM REMOVED
-# ======================================================================= #
-# No limit checking
-# No usage tracking
-# No reset job
-# ======================================================================= #
 
-async def check_and_increment(user_id, tag):
-    """
-    LIMIT REMOVED:
-    Always return True → unlimited usage for all users
-    """
-    # Make sure the user exists in the DB (optional)
+async def is_verified(user_id):
     user = await db.get_user(user_id)
+
     if not user:
-        await db.add_user(user_id, f"User{user_id}")
+        return False
+
+    expiry = user.get("verified_until")
+
+    if not expiry:
+        return False
+
+    if expiry < datetime.datetime.utcnow().timestamp():
+        # Expired → remove verification
+        await db.update_user({"id": user_id, "verified_until": None})
+        return False
 
     return True
 
-# ======================================================================= #
-# DAILY RESET REMOVED
-# ======================================================================= #
 
-async def reset_limits():
-    """
-    Function kept only for compatibility but does nothing now.
-    """
-    print("Daily limit reset skipped (limits removed).")
+# ================== OWNER COMMANDS ================== #
 
-async def start_scheduler():
-    """
-    Scheduler removed. No daily reset needed.
-    """
-    print("[Scheduler] Disabled since limits are removed.")
+async def admin_set_verify(user_id, days):
+    expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=days)).timestamp()
+    await db.update_user({"id": user_id, "verified_until": expiry})
+    return True
 
-# Nexa # Dont Remove Credit
+
+async def admin_remove_verify(user_id):
+    await db.update_user({"id": user_id, "verified_until": None})
+    return True
