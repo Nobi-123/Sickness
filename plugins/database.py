@@ -1,15 +1,15 @@
-# (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
+# Nexa # Dont Remove Credit
 
-import datetime
 import motor.motor_asyncio
 from pymongo import MongoClient
 from config import DS_DB_URI, DS_DB_NAME
 
-# Synchronous client (optional)
-client = MongoClient(DS_DB_URI)
-# Async client
+# Async MongoDB client
 mongo = motor.motor_asyncio.AsyncIOMotorClient(DS_DB_URI)
 db_async = mongo[DS_DB_NAME]
+
+# Optional synchronous client (for testing/admin)
+client = MongoClient(DS_DB_URI)
 db_sync = client[DS_DB_NAME]
 
 
@@ -83,7 +83,4 @@ class Database:
             return None
 
 
-# Instantiate
 db = Database()
-
-# (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
