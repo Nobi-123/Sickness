@@ -12,7 +12,7 @@ async def save_desi(_, message):
             file_id=message.video.file_id,
             msg_id=message.id,
             file_size=message.video.file_size,
-            tag="Corn Video"
+            tag="Video"
         )
 
 @Client.on_message(filters.video & filters.chat(DS_VIDESI_FILE_CHANNEL))
@@ -23,7 +23,7 @@ async def save_videsi(_, message):
             file_id=message.video.file_id,
             msg_id=message.id,
             file_size=message.video.file_size,
-            tag="Corn Video"
+            tag="Video"
         )
 
 # (c) ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️ # Dont Remove Credit
