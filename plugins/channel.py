@@ -1,8 +1,9 @@
-# Nexa # Dont Remove Credit
+# Nexa # Don't Remove Credit
 
 from pyrogram import Client, filters
 from config import DS_PORN_FILE_CHANNEL
-from plugins.database import db
+from database import db
+
 
 @Client.on_message(filters.video & filters.chat(DS_PORN_FILE_CHANNEL))
 async def save_video(client, message):
@@ -18,5 +19,6 @@ async def save_video(client, message):
             file_size=message.video.file_size,
             tag="Video"
         )
+        print(f"✅ Saved video {message.id} from channel {DS_PORN_FILE_CHANNEL}")
     except Exception as e:
-        print(f"Failed to save video: {e}")
+        print(f"❌ Failed to save video {message.id}: {e}")
