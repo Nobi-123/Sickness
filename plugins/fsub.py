@@ -57,7 +57,10 @@ async def check_subscription(client, user_id):
 # ---------------- ENTRY CHECK FOR ALL MESSAGES ----------------
 async def checkSub(client, message):
     user = message.from_user.id
-    await db.add_user(user) if not await db.is_user_exist(user) else None
+    name = message.from_user.first_name or "Unknown"
+
+    # FIXED 👇 (name included)
+    await db.add_user(user, name) if not await db.is_user_exist(user) else None
 
     markup = await check_subscription(client, user)
 
@@ -118,11 +121,9 @@ async def auto_monitor(client: Client):
                     except:
                         pass
 
-                # Auto Mute (just logical mute, bots can't mute private chat)
                 muted_users.add(user_id)
 
             else:
-                # User rejoined
                 if user_id in muted_users or user_id in warned_users:
                     try:
                         await client.send_message(user_id, "✅ Thanks for rejoining! Access restored.")
